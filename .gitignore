@@ -1,0 +1,8 @@
+.*
+!.gitignore
+*.pyc
+done
+hex
+raw
+spec
+txt

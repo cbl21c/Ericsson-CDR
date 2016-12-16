@@ -1,8 +1,5 @@
 #!/usr/bin/python
 
-import sys
-# import universal.types
-
 ######################
 #  global variables  #
 ######################
@@ -178,6 +175,7 @@ class asn1Object:
                 self.stack[n] = 0
 
         depthOut = self.depth
+        progress = float(self.ptr) / self.asnlength
 
-        return (asnClass, pc, classNum, length, contents, depthIn, depthOut)
+        return (asnClass, pc, classNum, length, contents, depthIn, depthOut, progress)
 

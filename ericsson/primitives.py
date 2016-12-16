@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-import sys
-
 
 TSC_TELEPHONY         = 0x11
 TSC_EMERGENCY         = 0x12
@@ -34,16 +32,17 @@ PRIORITY_LEVEL_SPARE = 0x00
 ##############################
 def _EnumeratedType(label, index):
     if index < len(label):
-        sys.stdout.write('%d (%s)' %(index, label[index]))
+        return '%d (%s)' %(index, label[index])
     else:
-        sys.stdout.write('Unexpected value: %d' % index)
+        return 'Unexpected value: %d' % index
 
 ##############################
-# _getTBCDString             #
+# _TBCDString             #
 ##############################
-def _getTBCDString(contents):
+def _TBCDString(contents):
     # for all parameters which are to be interperted as TBCD
     # returns the address string but does not display the result
+    # Note: this is also a defined type in the ASN.1 specification
     addr = ''
     for x in contents:
         dig1 = x & 0x0f
@@ -63,17 +62,18 @@ def _Integer(contents):
     for x in contents:
         value = value * 256 + x
 
-    sys.stdout.write('%d' % value)
+    return '%d' % value
 
 ##############################
 # _OctetString               #
 ##############################
 def _OctetString(contents):
     # for all parameters which are to be displayed as octet string
-    sys.stdout.write('0x')
+    val = '0x'
     for x in contents:
-        sys.stdout.write('%02x' % x)
+        val = val + '%02x' % x
 
+    return val
 
 
 ################################################################################
@@ -84,8 +84,8 @@ def _OctetString(contents):
 # _AccountCode               #
 ##############################
 def _AccountCode(contents):
-    code = _getTBCDString(contents)
-    sys.stdout.write(code)
+    code = _TBCDString(contents)
+    return code
 
 ##############################
 # _AddressString             #
@@ -94,21 +94,20 @@ def _AddressString(contents):
     first = contents[0]
     ton = first >> 4
     npi = first & 0x0f
-    addr = _getTBCDString(contents[1:])
-    sys.stdout.write('TON=%d, NPI=%d, Digits=%s' %(ton, npi, addr))
+    addr = _TBCDString(contents[1:])
+    return 'TON=%d, NPI=%d, Digits=%s' %(ton, npi, addr)
 
 ##############################
 # _AddressStringExtended     #
 ##############################
 def _AddressStringExtended(contents):
-    _AddressString(contents)
+    return _AddressString(contents)
 
 ##############################
 # _AgeOfLocationEstimate             #
 ##############################
 def _AgeOfLocationEstimate(contents):
-    _Integer(contents)
-    sys.stdout.write(' mins')
+    return _Integer(contents) + ' mins'
 
 ##############################
 # _AirInterfaceUserRate             #
@@ -127,7 +126,7 @@ def _AirInterfaceUserRate(contents):
         'aIUR38400bps3',
         'aIUR38400bps4'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _AoCCurrencyAmountSent             #
@@ -140,7 +139,7 @@ def _AoCCurrencyAmountSent(contents):
 # _ApplicationIdentifier             #
 ##############################
 def _ApplicationIdentifier(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _AsyncSyncIndicator             #
@@ -150,14 +149,14 @@ def _AsyncSyncIndicator(contents):
         'syncData',
         'asyncData'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _BearerServiceCode             #
 ##############################
 def _BearerServiceCode(contents):
     if contents[0] >> 4 != 0x01:
-        sys.stdout.write('Unknown')
+        return 'Unknown'
 
     label = [
         'All data Circuit Data Asynchronous (CDA) Services',
@@ -177,7 +176,7 @@ def _BearerServiceCode(contents):
         'Data CDS - 9600bps',
         'General - data CDS'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _BitRate             #
@@ -202,13 +201,13 @@ def _BitRate(contents):
         '8.85 kbps',
         '12.65 kbps'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _BladeID             #
 ##############################
 def _BladeID(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _BSSMAPCauseCode             #
@@ -216,11 +215,13 @@ def _BladeID(contents):
 def _BSSMAPCauseCode(contents):
     ext = contents[0] >> 7
     cause = contents[0] & 0x7f
-    sys.stdout.write('Cause=%d' % cause)
+    val = 'Cause=%d' % cause
 
     if ext == 1:
         extcause = contents[1]
-        sys.stdout.write('; Extended Cause=%d' % extcause)
+        val = val + '; Extended Cause=%d' % extcause
+
+    return val
 
 ##############################
 # _CallAttemptState             #
@@ -236,13 +237,13 @@ def _CallAttemptState(contents):
         'unknownCallState',
         'callActiveState'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _CallIDNumber             #
 ##############################
 def _CallIDNumber(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _CallPosition              #
@@ -254,27 +255,29 @@ def _CallPosition(contents):
         'callHasOnlyReachedThroughConnection',
         'b-AnswerHasBeenReceived'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _CarrierIdentificationCode             #
 ##############################
 def _CarrierIdentificationCode(contents):
-    addr = _getTBCDString(contents)
-    sys.stdout.write('%s' % addr)
+    return _TBCDString(contents)
 
 ##############################
 # _CarrierInfo             #
 ##############################
 def _CarrierInfo(contents):
-    addr = _getTBCDString(contents[0:2])
-    sys.stdout.write('ID=%s' % addr)
+    addr = _TBCDString(contents[0:2])
+    val = 'ID=%s' % addr
+
     if len(contents) == 3:
         hi = contents[2] >> 4
         lo = contents[2] & 0x0f
 
         label = ['No indication', 'Hierarchy level 1', 'Heirarchy level 2']
-        sys.stdout.write('; Entry POI: %s; Exit POI: %s' %(label[hi], label[lo]))
+        val = val + '; Entry POI: %s; Exit POI: %s' %(label[hi], label[lo])
+
+    return val
 
 ##############################
 # _CarrierInformation             #
@@ -288,7 +291,7 @@ def _CarrierInformation(contents):
 ##############################
 def _CarrierSelectionSubstitutionInformation(contents):
     # descriptions are too long to make this an enumerated type
-    _Integer(contents)
+    return _Integer(contents)
     '''
         001 Presubscribed carrier exists, and carrier is not input by calling party. Presubscribed carrier is used.,
         010 Presubscribed carrier is same as carrier input by calling party.  Input carrier is used.,
@@ -303,7 +306,7 @@ def _CarrierSelectionSubstitutionInformation(contents):
 # _CauseCode             #
 ##############################
 def _CauseCode(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _ChangeInitiatingParty             #
@@ -313,7 +316,7 @@ def _ChangeInitiatingParty(contents):
         'userInitiated',
         'networkInitiated'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _ChannelAllocationPriorityLevel                      #
@@ -321,9 +324,9 @@ def _ChangeInitiatingParty(contents):
 def _ChannelAllocationPriorityLevel(contents):
     priority = (contents[0] >> 2) & 0x0f
     if priority == PRIORITY_NOT_USED:
-        sys.stdout.write('Not used')
+        return 'Not used'
     else:
-        sys.stdout.write('%d' % priority)
+        return '%d' % priority
 
 ##############################
 # _ChannelCodings                      #
@@ -332,13 +335,15 @@ def _ChannelCodings(contents):
     used = 0
     codings = contents[0]
     if (codings >> 3) % 2 == 1:
-        sys.stdout.write('14.4kbps')
+        val = '14.4kbps'
         used = 1
     if (codings >> 2) % 2 == 1:
-        sys.stdout.write(' ' * used + '9.6kbps')
+        val = val + ' ' * used + '9.6kbps'
         used = 1
     if codings % 2 == 1:
-        sys.stdout.write(' ' * used + '4.8kbps')
+        val = val + ' ' * used + '4.8kbps'
+
+    return val
 
 ##############################
 # _ChargeAreaCode                      #
@@ -356,7 +361,7 @@ def _ChargedParty(contents):
         'chargingOfCalledSubscriber',
         'noCharging'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _ChargeInformation #
@@ -369,7 +374,7 @@ def _ChargeInformation(contents):
 # _ChargingCase #
 ##############################
 def _ChargingCase(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _ChargingIndicator #
@@ -382,19 +387,19 @@ def _ChargingIndicator(contents):
 # _ChargingOrigin #
 ##############################
 def _ChargingOrigin(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _ChargingUnitsAddition #
 ##############################
 def _ChargingUnitsAddition(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _Counter #
 ##############################
 def _Counter(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _CRIIndicator #
@@ -404,74 +409,81 @@ def _CRIIndicator(contents):
         'chargeRateInformationAcknowledged',
         'chargeRateInformationNotAcknowledged'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _CRIToMS #
 ##############################
 def _CRIToMS(contents):
+    val = ''
     for n in range(7):
-        addr = _getTBCDString(contents[n * 2 : n * 2 + 2])
+        addr = _TBCDString(contents[n * 2 : n * 2 + 2])
         if n > 0:
-            sys.stdout.write(', ')
-        sys.stdout.write('e%d= %s' % (n + 1, addr))
+            val = val + ', '
+        val = val + 'e%d= %s' % (n + 1, addr)
+
+    return val
 
 ##############################
 # _CUGIndex #
 ##############################
 def _CUGIndex(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _CUGInterlockCode #
 ##############################
 def _CUGInterlockCode(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _C7ChargingMessage #
 ##############################
 def _C7ChargingMessage(contents):
     (hh, mm) = contents[0:2]
-    sys.stdout.write('Time %02d:02d' %(hh, mm))
+    val = 'Time %02d:02d' %(hh, mm)
 
     mi = contents[2]
-    sys.stdout.write('; MsgInd=%02x' % mi)
+    val = val + '; MsgInd=%02x' % mi
 
     taxQuantumA = contents[3] >> 4
     tariffIndA  = contents[3] & 0x0f
-    sys.stdout.write('; Tax quantum A=%02x; Tariff Ind A=%02x' %(taxQuantumA, tariffIndA))
+    val = val + '; Tax quantum A=%02x; Tariff Ind A=%02x' %(taxQuantumA, tariffIndA)
 
     tariffFactorA = contents[4]
-    sys.stdout.write('; Tariff Factor A=%02x' % tariffFactorA)
+    val = val + '; Tariff Factor A=%02x' % tariffFactorA
 
     timeIndB = contents[5]
-    sys.stdout.write('; Time Ind B=%02x' % timeIndB)
+    val = val + '; Time Ind B=%02x' % timeIndB
 
     taxQuantumB = contents[6] >> 4
     tariffIndB  = contents[6] & 0x0f
-    sys.stdout.write('; Tax quantum B=%02x; Tariff Ind B=%02x' %(taxQuantumB, tariffIndB))
+    val = val + '; Tax quantum B=%02x; Tariff Ind B=%02x' %(taxQuantumB, tariffIndB)
 
     tariffFactorB = contents[7]
-    sys.stdout.write('; Tariff Factor B=%02x' % tariffFactorB)
+    val = val + '; Tariff Factor B=%02x' % tariffFactorB
+
+    return val
 
 ##############################
 # _C7CHTMessage #
 ##############################
 def _C7CHTMessage(contents):
     (hh, mm) = contents[0:2]
-    sys.stdout.write('Time %02d:02d' %(hh, mm))
+    val = 'Time %02d:02d' %(hh, mm)
 
     mi = contents[2] >> 4
     ti = contents[2] & 0x0f
-    sys.stdout.write('; MsgInd=%02x; Tariff Ind=%02x' %(mi, ti))
+    val = val + '; MsgInd=%02x; Tariff Ind=%02x' %(mi, ti)
 
     tariffFactor = contents[3]
-    sys.stdout.write('; Tariff Factor =%02x' % tariffFactor)
+    val = val + '; Tariff Factor =%02x' % tariffFactor
 
     timeInd = contents[4]
-    sys.stdout.write('; Time Ind =%02x' % timeInd)
+    val = val + '; Time Ind =%02x' % timeInd
+
+    return val
 
 ##############################
 # _Date #
@@ -484,14 +496,14 @@ def _Date(contents):
         (cc, yy, mm, dd) = contents
         yy =cc * 100 + yy
 
-    sys.stdout.write('%d/%02d/%02d' %(dd, mm, yy))
+    return '%d/%02d/%02d' %(dd, mm, yy)
 
 ##############################
 # _DecipheringKeys #
 ##############################
 def _DecipheringKeys(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _DefaultCallHandling #
@@ -501,7 +513,7 @@ def _DefaultCallHandling(contents):
         'continueCall',
         'releaseCall'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _DefaultSMSHandling #
@@ -511,7 +523,7 @@ def _DefaultSMSHandling(contents):
         'continueTransaction',
         'releaseTransaction'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _DeliveryOfErroneousSDU #
@@ -522,7 +534,7 @@ def _DeliveryOfErroneousSDU(contents):
         'no',
         'noErrorDetectionConsideration'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _DisconnectingParty #
@@ -533,17 +545,13 @@ def _DisconnectingParty(contents):
         'calledPartyRelease',
         'networkRelease'
     ]
-
-    value = contents[0]
-    if value < len(label):
-        sys.stdout.write('%d (%s)' %(value, label[value]))
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _Distributed #
 ##############################
 def _Distributed(contents):
-    sys.stdout.write('A: %d%%, B: %d%%, C: %d%%, Other: %d%%' \
-        % (contents[0], contents[1], contents[2], contents[3]))
+    return 'A: %d%%, B: %d%%, C: %d%%, Other: %d%%' % (contents[0], contents[1], contents[2], contents[3])
 
 ##############################
 # _EmergencyServiceCategory #
@@ -560,33 +568,38 @@ def _EmergencyServiceCategory(contents):
     ]
 
     used = 0
+    val = ''
     for shift in range(7):
         emerg = contents[0] >> shift
         if emerg % 2 == 1:
-            sys.stdout.write(', ' * used + label[shift])
+            val = val + ', ' * used + label[shift]
             used = 1
+
+    return val
 
 ##############################
 # _EMLPPPriorityLevel #
 ##############################
 def _EMLPPPriorityLevel(contents):
     priority = contents[0] & 0x07
-    sys.stdout.write('Priority level ')
+    val = 'Priority level '
     if priority == PRIORITY_LEVEL_A:
-        sys.stdout.write('A')
+        val = val + 'A'
     if priority == PRIORITY_LEVEL_B:
-        sys.stdout.write('B')
+        val = val + 'B'
     if priority == PRIORITY_LEVEL_SPARE:
-        sys.stdout.write('(Spare)')
+        val = val + '(Spare)'
     else:
-        sys.stdout.write('%d' % (5 - priority))
+        val = val + '%d' % (5 - priority)
+
+    return val
 
 ##############################
 # _EndToEndAccessDataMap #
 ##############################
 def _EndToEndAccessDataMap(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _EosInfo #
@@ -633,33 +646,33 @@ def _EosInfo(contents):
     label[0x3d] = 'Route congestion'
     label[0x3e] = 'Unpermitted traffic case'
     label[0x3f] = 'No acknowledgement from mobile subscriber'
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _ErrorRatio #
 ##############################
 def _ErrorRatio(contents):
-    sys.stdout.write('1 per %dx10^%d' % (contents[0], contents[1]))
+    return '1 per %dx10^%d' % (contents[0], contents[1])
 
 ##############################
 # _EventCRIToMS #
 ##############################
 def _EventCRIToMS(contents):
-    e3 = _getTBCDString(contents[0:2])
-    e4 = _getTBCDString(contents[2:4])
-    sys.stdout.write('e3=%s e4=%s' % (e3, e4))
+    e3 = _TBCDString(contents[0:2])
+    e4 = _TBCDString(contents[2:4])
+    return 'e3=%s e4=%s' % (e3, e4)
 
 ##############################
 # _ExchangeIdentity #
 ##############################
 def _ExchangeIdentity(contents):
-    sys.stdout.write(str(bytearray(contents)))
+    return str(bytearray(contents))
 
 ##############################
 # _FaultCode #
 ##############################
 def _FaultCode(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _FirstRadioChannelUsed #
@@ -669,7 +682,7 @@ def _FirstRadioChannelUsed(contents):
         'fullRateChannel',
         'halfRateChannel'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _FixedNetworkUserRate #
@@ -687,13 +700,13 @@ def _FixedNetworkUserRate(contents):
         'fNUR64000bps',
         'fNURautobauding'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _FreeFormatData #
 ##############################
 def _FreeFormatData(contents):
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _FrequencyBandSupported #
@@ -703,33 +716,58 @@ def _FrequencyBandSupported(contents):
 
     value = contents[0]
     nbands = 0
-    sys.stdout.write('0x%02x: ' % value)
+    val = '0x%02x: ' % value
+
     for x in range(3):
         if value % 2 == 1:
             if nbands > 0:
-                sys.stdout.write(', ')
-            sys.stdout.write(band[x])
+                val = val + ', '
+            val = val + band[x]
             nbands = nbands + 1
         value = value >> 1
+
+    return val
 
 ##############################
 # _GenericDigitsSet #
 ##############################
 def _GenericDigitsSet(contents):
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _GenericNumbersSet #
 ##############################
 def _GenericNumbersSet(contents):
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _GlobalCallReference #
 ##############################
 def _GlobalCallReference(contents):
     # review
-    _OctetString(contents)
+    ptr = 0
+
+    length = contents[ptr]
+    ptr = ptr + 1
+    if length > 0:
+        netId = contents[ptr:ptr + length]
+        val = 'Network ID=' + _OctetString(netId)
+        ptr = ptr + length
+
+    length = contents[ptr]
+    ptr = ptr + 1
+    if length > 0:
+        nodeId = contents[ptr:ptr + length]
+        val = val + ' Node ID=' + _OctetString(nodeId)
+        ptr = ptr + length
+
+    length = contents[ptr]
+    ptr = ptr + 1
+    if length > 0:
+        callrefId = contents[ptr:ptr + length]
+        val = val + 'Call Ref ID=' + _OctetString(callrefId)
+
+    return val
 
 ##############################
 # _GlobalTitle #
@@ -742,48 +780,45 @@ def _GlobalTitle(contents):
     elif npoe & 0x0f == 2:
         oe = 'Even'
 
-    digits = _getTBCDString(contents[3:])
+    digits = _TBCDString(contents[3:])
 
     if oe == 'Odd':
         digits = digits[:-1]
 
     # don't need to print out Odd/Even if the digits are printed to the correct length
-    sys.stdout.write('TT=%d, NP=%d, NAI=%d, Digits=%s' % (tt, np, nai, digits))
+    return 'TT=%d, NP=%d, NAI=%d, Digits=%s' % (tt, np, nai, digits)
 
 ##############################
 # _GlobalTitleAndSubSystemNumber #
 ##############################
 def _GlobalTitleAndSubSystemNumber(contents):
     ssn = contents[0]
-    sys.stdout.write('SSN=%d, ' % ssn)
-    _GlobalTitle(contents[1:])
+    val = 'SSN=%d, ' % ssn + _GlobalTitle(contents[1:])
+    return val
 
 ##############################
 # _GSMCallReferenceNumber #
 ##############################
 def _GSMCallReferenceNumber(contents):
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _IMEI #
 ##############################
 def _IMEI(contents):
-    imei = _getTBCDString(contents[0:7])
-    sys.stdout.write(imei)
+    return _TBCDString(contents[0:7])
 
 ##############################
 # _IMEISV #
 ##############################
 def _IMEISV(contents):
-    imeisv = _getTBCDString(contents)
-    sys.stdout.write(imeisv)
+    return _TBCDString(contents)
 
 ##############################
 # _IMSI #
 ##############################
 def _IMSI(contents):
-    imsi = _getTBCDString(contents)
-    sys.stdout.write(imsi)
+    return _TBCDString(contents)
 
 ##############################
 # _INMarkingOfMS #
@@ -805,13 +840,13 @@ def _INMarkingOfMS(contents):
         'subscriberDialledCAMELServiceAndOriginatingCAMELService',
         'visitedTerminatingCAMELService'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _INServiceTrigger #
 ##############################
 def _INServiceTrigger(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _IntermediateRate #
@@ -823,7 +858,7 @@ def _IntermediateRate(contents):
         'rate8KbitPerSecondUsed',
         'rate16KbitPerSecondUsed'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _InternalCauseAndLoc #
@@ -831,7 +866,7 @@ def _IntermediateRate(contents):
 def _InternalCauseAndLoc(contents):
     location = contents[0]
     cause    = contents[1]
-    sys.stdout.write('Location=%02x; Cause=%02x' %(location, cause))
+    return 'Location=%02x; Cause=%02x' %(location, cause)
 
 ##############################
 # _IuCodec #
@@ -844,13 +879,13 @@ def _IuCodec(contents):
     label[4]  = 'uMTSAdaptiveMultiRate2-Set1'
     label[5]  = 'uMTSAdaptiveMultiRate2-AllModes'
     label[20] = 'uMTSAdaptiveMultiRateWideBand-Set0'
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _LCSAccuracy #
 ##############################
 def _LCSAccuracy(contents):
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _LCSClientType #
@@ -862,7 +897,7 @@ def _LCSClientType(contents):
         'plmnOperatorServices',
         'lawfulInterceptServices'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _LCSDeferredEventType #
@@ -871,33 +906,33 @@ def _LCSDeferredEventType(contents):
     label = [
         'deferred-MT-UEreachableEvent'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _LegID #
 ##############################
 def _LegID(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _LevelOfCAMELService #
 ##############################
 def _LevelOfCAMELService(contents):
     # the encoding in the CDR is not consistent with the documentation
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _LocationCode #
 ##############################
 def _LocationCode(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _LocationEstimate #
 ##############################
 def _LocationEstimate(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _LocationInformation #
@@ -918,7 +953,7 @@ def _LocationInformation(contents):
     lac = contents[3] * 256 + contents[4]
     sac = contents[5] * 256 + contents[6]
 
-    sys.stdout.write('MCC=%s, MNC=%s, LAC=%d, SAC=%d' %(mcc, mnc, lac, sac))
+    return 'MCC=%s, MNC=%s, LAC=%d, SAC=%d' %(mcc, mnc, lac, sac)
 
 
 ##############################
@@ -927,14 +962,13 @@ def _LocationInformation(contents):
 def _LocationInformationExtension(contents):
     octets = contents
     octets[0] = octets[0] & 0x0f
-    sys.stdout.write('E-UTRAN Cell Id=')
-    _Integer(octets)
+    return 'E-UTRAN Cell Id=' + _Integer(octets)
 
 ##############################
 # _MessageReference #
 ##############################
 def _MessageReference(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _MessageTypeIndicator #
@@ -949,25 +983,25 @@ def _MessageTypeIndicator(contents):
         'sMSsubmitReportSCtoMS',
         'reservedMTIValue'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _MiscellaneousInformation #
 ##############################
 def _MiscellaneousInformation(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _MMEIdentity #
 ##############################
 def _MMEIdentity(contents):
-    sys.stdout.write(contents)
+    return str(contents)
 
 ##############################
 # _MMEName #
 ##############################
 def _MMEName(contents):
-    sys.stdout.write(contents)
+    return str(contents)
 
 ##############################
 # _MobileUserClass1 #
@@ -983,44 +1017,44 @@ def _MobileUserClass2(contents):
     # only used for WCDMA Japan
     pass
 
+##############################
 # _NetworkCallReference #
 ##############################
 def _NetworkCallReference(contents):
-    sys.stdout.write('Seq=')
-    _Integer(contents[0:3])
-    sys.stdout.write(', SwitchID=')
-    _Integer(contents[3:])
+    val = 'Seq=' + _Integer(contents[0:3])
+    val = val + ', SwitchID=' + _Integer(contents[3:])
+    return val
 
 ##############################
 # _NumberOfChannels #
 ##############################
 def _NumberOfChannels(contents):
     nchannels = [contents[0] + 1]
-    _Integer(nchannels)
+    return _Integer(nchannels)
 
 ##############################
 # _NumberOfMeterPulses #
 ##############################
 def _NumberOfMeterPulses(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _NumberOfOperations #
 ##############################
 def _NumberOfOperations(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _NumberOfShortMessage #
 ##############################
 def _NumberOfShortMessage(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _OperationIdentifier #
 ##############################
 def _OperationIdentifier(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _OptimalRoutingType #
@@ -1030,7 +1064,7 @@ def _OptimalRoutingType(contents):
         'optimalRoutingAtLateCallForwarding',
         'hplmnOptimalRoutingAtLateCallForwarding'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _OriginatedCode #
@@ -1048,13 +1082,13 @@ def _OriginatedCode(contents):
         'testCallWithSelectionInSpecifiedRoute',
         'operator'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _OriginatingLineInformation #
 ##############################
 def _OriginatingLineInformation(contents):
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _OutputForSubscriber #
@@ -1065,7 +1099,7 @@ def _OutputForSubscriber(contents):
         'calledParty',
         'callingAndCalledParty'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _OutputType #
@@ -1081,13 +1115,13 @@ def _OutputType(contents):
         'tTAndICIForCalledSubscriber',
         'tTAndICIForCallingAndCalledSubscribers'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _PartialOutputRecNum #
 ##############################
 def _PartialOutputRecNum(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _PChargingVector #
@@ -1095,26 +1129,29 @@ def _PartialOutputRecNum(contents):
 def _PChargingVector(contents):
     datalen = len(contents)
     ptr = 0
+    val = ''
     while ptr < datalen:
         fieldlen = contents[ptr]
         ptr = ptr + 1
         if ptr > 1:
-            sys.stdout.write(',')
-        sys.stdout.write(str(contents[ptr:ptr + fieldlen]))
+            val = val + ','
+        val = val + str(contents[ptr:ptr + fieldlen])
         ptr = ptr + fieldlen
+
+    return val
 
 ##############################
 # _PChargingVectorRelated #
 ##############################
 def _PChargingVectorRelated(contents):
-    _PChargingVector(contents)
+    return _PChargingVector(contents)
 
 ##############################
 # _PositioningDelivery #
 ##############################
 def _PositioningDelivery(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _PointCodeAndSubSystemNumber #
@@ -1122,14 +1159,14 @@ def _PositioningDelivery(contents):
 def _PointCodeAndSubSystemNumber(contents):
     (spc1, spc2, spc3, ssn) = contents
     spc = spc2 * 256 + spc1
-    sys.stdout.write('PC=%d, SSN=%d' %(spc, ssn))
+    return 'PC=%d, SSN=%d' %(spc, ssn)
 
 ##############################
 # _PositionAccuracy #
 ##############################
 def _PositionAccuracy(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _PresentationAndScreeningIndicator #
@@ -1153,14 +1190,13 @@ def _PresentationAndScreeningIndicator(contents):
     hi = value >> 4
     lo = value & 0x0f
 
-    sys.stdout.write('0x%02x %s; %s' %(value, screen[hi], present[lo]))
+    return '0x%02x: %s; %s' %(value, screen[hi], present[lo])
 
 ##############################
 # _ProcedureCode #
 ##############################
 def _ProcedureCode(contents):
-    code = _getTBCDString(contents)
-    sys.stdout.write(code)
+    return _TBCDString(contents)
 
 ##############################
 # _RadioChannelProperty #
@@ -1183,25 +1219,25 @@ def _RadioChannelProperty(contents):
         'twoDownlinkOneUplinkAssignedAirTimeSlots',
         'fourDownlinkOneUplinkAssignedAirTimeSlots',
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _RANAPCauseCode #
 ##############################
 def _RANAPCauseCode(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _RecordSequenceNumber #
 ##############################
 def _RecordSequenceNumber(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _RedirectionCounter #
 ##############################
 def _RedirectionCounter(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _RegionalServiceUsed #
@@ -1213,7 +1249,7 @@ def _RegionalServiceUsed(contents):
         'subscriptionWithTariffAreas',
         'regionalSubcriptionAndSubscriptionWithTariffAreas'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _ResponseTimeCategory #
@@ -1223,20 +1259,20 @@ def _ResponseTimeCategory(contents):
         'lowdelay',
         'delaytolerant',
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _RoamingPriorityLevel #
 ##############################
 def _RoamingPriorityLevel(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _Route #
 ##############################
 def _Route(contents):
-    sys.stdout.write(contents)
+    return (contents)
 
 ##############################
 # _RTCDefaultServiceHandling #
@@ -1246,13 +1282,13 @@ def _RTCDefaultServiceHandling(contents):
         'serviceAllowed',
         'serviceNotAllowed',
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _RTCFailureIndicator #
 ##############################
 def _RTCFailureIndicator(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _RTCNotInvokedReason #
@@ -1266,13 +1302,13 @@ def _RTCNotInvokedReason(contents):
         'mcaSMSFreeOfCharge',
         'undeterminedRoamingPLMN'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _RTCSessionID #
 ##############################
 def _RTCSessionID(contents):
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _SelectedCodec #
@@ -1292,26 +1328,25 @@ def _SelectedCodec(contents):
     # pad out to 16 elements and fill in index 15
     label = label + [None] * (16 - len(label))
     label[15] = 'inmarsatCoding'
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _ServiceCode #
 ##############################
 def _ServiceCode(contents):
-    code = _getTBCDString(contents)
-    sys.stdout.write(code)
+    return _TBCDString(contents)
 
 ##############################
 # _ServiceFeatureCode #
 ##############################
 def _ServiceFeatureCode(contents):
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _ServiceKey #
 ##############################
 def _ServiceKey(contents):
-    _Integer(contents[0:4])
+    return _Integer(contents[0:4])
 
 ##############################
 # _ServiceSwitchingType #
@@ -1321,7 +1356,7 @@ def _ServiceSwitchingType(contents):
         'speechToFax',
         'faxToSpeech',
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _Single #
@@ -1333,7 +1368,7 @@ def _Single(contents):
         'cPartyToBeCharged',
         'otherPartyToBeCharged',
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _SMSResult #
@@ -1347,7 +1382,7 @@ def _SMSResult(contents):
         'unsuccessfulMOSMSDeliverytoSMSCDuetoRTCFAReason',
         'unsuccessfulMTSMSDeliverytoMSDuetoRTCFAReason'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _SpeechCoderPreferenceList #
@@ -1363,14 +1398,15 @@ def _SpeechCoderPreferenceList(contents):
         'fullRateVersion5'
     ]
 
-    sys.stdout.write('{')
+    val = '{'
     for n in range(len(contents)):
         x = contents[n]
         if n > 0:
-            sys.stdout.write(', ')
-        sys.stdout.write(label[x])
+            val = val + ', '
+        val = val + label[x]
 
-    sys.stdout.write('}')
+    val = val + '}'
+    return val
 
 ##############################
 # _SpeechCoderVersion #
@@ -1385,7 +1421,7 @@ def _SpeechCoderVersion(contents):
         'halfRateVersion3',
         'fullRateVersion5'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _SRVCCAlertingIndicator #
@@ -1395,7 +1431,7 @@ def _SRVCCAlertingIndicator(contents):
         'OriginatingCallInAlertingState',
         'TerminatingCallInAlertingState',
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _SRVCCIndicator #
@@ -1407,20 +1443,20 @@ def _SRVCCIndicator(contents):
         'gERAN',
         'uTRAN'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _SSCode #
 ##############################
 def _SSCode(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _SSFChargingCase #
 ##############################
 def _SSFChargingCase(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _SSRequest #
@@ -1436,7 +1472,7 @@ def _SSRequest(contents):
         'registerPassword',
         'processUSSD'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _SubscriberState #
@@ -1447,42 +1483,44 @@ def _SubscriberState(contents):
         'attached',
         'implicitDetached',
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _SubscriptionType #
 ##############################
 def _SubscriptionType(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _SwitchIdentity #
 ##############################
 def _SwitchIdentity(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _TAC #
 ##############################
 def _TAC(contents):
     (tsc, tos, toi) = contents[0:3]
-    sys.stdout.write('TSC=%d, TOS=%d, TOI=%d' %(tsc, tos, toi))
+    val = 'TSC=%d, TOS=%d, TOI=%d' %(tsc, tos, toi)
     if len(contents) == 4:
         top = contents[3]
-        sys.stdout.write(', TOP=%d' % top)
+        val = val + ', TOP=%d' % top
+
+    return val
 
 ##############################
 # _TargetRNCid #
 ##############################
 def _TargetRNCid(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _TariffClass #
 ##############################
 def _TariffClass(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _TariffSwitchInd #
@@ -1493,52 +1531,54 @@ def _TariffSwitchInd(contents):
         None,
         'tariffSwitchAfterStartOfCharging',
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _TBCDString #
 ##############################
-def _TBCDString(contents):
-    dig = _getTBCDString(contents)
-    sys.stdout.write(dig)
+# see Generic Types
 
 ##############################
 # _TeleServiceCode #
 ##############################
 def _TeleServiceCode(contents):
     tsc = contents[0]
-    sys.stdout.write('0x%02x ' % tsc)
+    val = '0x%02x ' % tsc
 
     if tsc == TSC_TELEPHONY:
-        sys.stdout.write('(Telephony)')
+        val = val + '(Telephony)'
     elif tsc == TSC_EMERGENCY:
-        sys.stdout.write('(Emergency)')
+        val = val + '(Emergency)'
     elif tsc == TSC_MT_SMS:
-        sys.stdout.write('(MT_SMS)')
+        val = val + '(MT_SMS)'
     elif tsc == TSC_MO_SMS:
-        sys.stdout.write('(MO_SMS)')
+        val = val + '(MO_SMS)'
     elif tsc == TSC_ALT_FAX_SPEECH:
-        sys.stdout.write('(Alt. Fax and Speech)')
+        val = val + '(Alt. Fax and Speech)'
     elif tsc == TSC_FAX_GROUP3:
-        sys.stdout.write('(Fax Group 3)')
+        val = val + '(Fax Group 3)'
     elif tsc & 0xf0 == TSC_ALL_PLMN_SPECIFIC:
         lo = tsc & 0x0f
         if lo == 0:
-            sys.stdout.write('(All PLMN specific TS)')
+            val = val + '(All PLMN specific TS)'
         else:
-            sys.stdout.write('(PLMN specific TS - %X)' % lo)
+            val = val + '(PLMN specific TS - %X)' % lo
     else:
-            sys.stdout.write('(Unknown)')
+        val = val + '(Unknown)'
+
+    return val
 
 ##############################
 # _Time                      #
 ##############################
 def _Time(contents):
     (hh, mm, ss) = contents[0:3]
-    sys.stdout.write('%d:%02d:%02d' %(hh, mm, ss))
+    val = '%d:%02d:%02d' %(hh, mm, ss)
 
     if len(contents) == 4:
-        sys.stdout.write('.%d' % contents[3])
+        val = val + '.%d' % contents[3]
+
+    return val
 
 ##############################
 # _Timezone #
@@ -1552,19 +1592,21 @@ def _Timezone(contents):
     hh = quarters / 4
     mm = quarters % 4
 
-    sys.stdout.write('UTC')
+    val = 'UTC'
     if sign == TZ_NEGATIVE:
-        sys.stdout.write('-')
+        val = val + '-'
     else:
-        sys.stdout.write('+')
-    sys.stdout.write('%02d:%02d' %(hh, mm * 15))
+        val = val + '+'
+    val = val + '%02d:%02d' %(hh, mm * 15)
+
+    return val
 
 ##############################
 # _TrafficActivityCode #
 ##############################
 def _TrafficActivityCode(contents):
     (tos, toi, top, tsc, rop) = contents
-    sys.stdout.write('TOS=%d, TOI=%d, TOP=%d, TSC=%d, ROP=%d' %(tos, toi, top, tsc, rop))
+    return 'TOS=%d, TOI=%d, TOP=%d, TSC=%d, ROP=%d' %(tos, toi, top, tsc, rop)
 
 ##############################
 # _TrafficClass #
@@ -1576,13 +1618,13 @@ def _TrafficClass(contents):
         'Interactive Class',
         'Background Class'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _TransferDelay #
 ##############################
 def _TransferDelay(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _TransitCarrierInfo #
@@ -1599,7 +1641,7 @@ def _TransparencyIndicator(contents):
         'transparent',
         'nonTransparent'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _TriggerDetectionPoint #
@@ -1638,7 +1680,7 @@ def _TriggerDetectionPoint(contents):
     label[254] = 'originatingCallAttemptCalledPartyNotReachable'
     label[255] = 'originatingCallAttemptAlerting'
 
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _TypeOfCalledSubscriber #
@@ -1649,13 +1691,13 @@ def _TypeOfCalledSubscriber(contents):
         'iSDNSubscriber',
         'unknownSubscriber'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _TypeOfCallingSubscriber #
 ##############################
 def _TypeOfCallingSubscriber(contents):
-    _Integer(contents)
+    return _Integer(contents)
 
 ##############################
 # _TypeOfLocationRequest #
@@ -1671,7 +1713,7 @@ def _TypeOfLocationRequest(contents):
         'nI-LocationRequest',
         'mT-LocationRequestDeferred'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _TypeOfSignalling #
@@ -1682,7 +1724,7 @@ def _TypeOfSignalling(contents):
         'iSUPIsAppliedAllTheWay',
         'unknownSignalling'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _UILayer1Protocol #
@@ -1701,7 +1743,7 @@ def _UILayer1Protocol(contents):
         'x31',
         'vSELP-Speech'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _UnsuccessfulPositioningDataReason #
@@ -1711,7 +1753,7 @@ def _UnsuccessfulPositioningDataReason(contents):
         'systemError',
         'userDeniedDueToPrivacyVerification'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _UserClass #
@@ -1758,28 +1800,28 @@ def _UserRate(contents):
         'uR300bps',
         'uR12000bps'
     ]
-    _EnumeratedType(label, contents[0])
+    return _EnumeratedType(label, contents[0])
 
 ##############################
 # _UserTerminalPosition #
 ##############################
 def _UserTerminalPosition(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _UserToUserInformation #
 ##############################
 def _UserToUserInformation(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 ##############################
 # _UserToUserService1Information #
 ##############################
 def _UserToUserService1Information(contents):
     # review
-    _OctetString(contents)
+    return _OctetString(contents)
 
 
 
@@ -2082,6 +2124,5 @@ parameterMap = {
     'globalTitle': _GlobalTitle,
     'globalTitleAndSubSystemNumber': _GlobalTitleAndSubSystemNumber
 }
-
 
 

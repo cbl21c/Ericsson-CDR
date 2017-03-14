@@ -20,6 +20,50 @@ PRIORITY_LEVEL_SPARE = 0x00
 
 
 #
+# support functions
+#
+def luhn(s):
+    # s can be list or string of digits
+    # if it is a string, first convert it to a list
+    if type(s) is str:
+        slen = len(s)
+        digits = [None] * slen
+        for n in range(slen):
+            digits[n] = int(s[n])
+    elif type(s) is list:
+        digits = s
+    else:
+        # not valid type, return None
+        return None
+
+    dlen = len(digits)
+    if dlen % 2 == 0:
+        odd = [None] * (dlen / 2)
+        even = [None] * (dlen / 2)
+        for n in range(dlen / 2):
+            odd[n] = digits[n * 2]
+            even[n] = digits[n * 2 + 1]
+    else:
+        odd = [None] * (dlen / 2)
+        even = [None] * (dlen / 2 + 1)
+        for n in range(dlen / 2):
+            even[n] = digits[n * 2]
+            odd[n] = digits[n * 2 + 1]
+        even[dlen / 2] = digits[dlen - 1]
+
+    oddsum = sum(odd)
+    evensum = 0
+    for n in even:
+        x = n * 2
+        if x > 9:
+            x = x - 9
+        evensum = evensum + x
+
+    digitsum = oddsum + evensum
+    checksum = 10 - (digitsum % 10)
+    return checksum
+
+#
 # Ericsson MSC CDR primitive types
 #
 
@@ -40,7 +84,7 @@ def _EnumeratedType(label, index):
 # _TBCDString             #
 ##############################
 def _TBCDString(contents):
-    # for all parameters which are to be interperted as TBCD
+    # for all parameters which are to be interpreted as TBCD
     # returns the address string but does not display the result
     # Note: this is also a defined type in the ASN.1 specification
     addr = ''
@@ -806,13 +850,23 @@ def _GSMCallReferenceNumber(contents):
 # _IMEI #
 ##############################
 def _IMEI(contents):
-    return _TBCDString(contents[0:7])
+    # IMEI is encoded in the CDR *without* the checksum digit
+    # so we need to calculate it ourself and append it
+    imei = _TBCDString(contents[0:7])
+    checksum = luhn(imei)
+    imei = imei + '%d' % checksum
+    return imei
 
 ##############################
 # _IMEISV #
 ##############################
 def _IMEISV(contents):
-    return _TBCDString(contents)
+    # IMEI is encoded in the CDR *without* the checksum digit
+    # so we need to calculate it ourself and append it
+    imei = _TBCDString(contents[0:7])
+    checksum = luhn(imei)
+    imeisv = imei + '%d' % checksum + _TBCDString([contents[7]])
+    return imeisv
 
 ##############################
 # _IMSI #

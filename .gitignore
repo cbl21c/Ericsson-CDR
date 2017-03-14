@@ -1,6 +1,7 @@
 .*
 !.gitignore
 *.pyc
+certs
 done
 hex
 raw

@@ -61,6 +61,9 @@ def luhn(s):
 
     digitsum = oddsum + evensum
     checksum = 10 - (digitsum % 10)
+    if checksum == 10:
+        checksum = 0
+
     return checksum
 
 #

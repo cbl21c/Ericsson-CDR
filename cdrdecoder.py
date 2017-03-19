@@ -29,7 +29,6 @@ parser.add_argument('infile', help='CDR file')
 # parse the arguments
 args = parser.parse_args()
 
-
 # try to open the input file
 try:
     with open(args.infile, 'rb') as cdrfile:

@@ -4,12 +4,19 @@ import os
 import sys
 import asn1
 import argparse
-from ericsson.cme20MSS14b import componentHash
 from ericsson.primitives import *
 
 # starting column to print field values
 FIELD_START = 48
 PROGRESS_BAR_MIN = 10
+
+
+def printStack(s):
+    sys.stderr.write('stack:\n')
+    for elt in s:
+        sys.stderr.write(elt + '\n')
+
+    sys.stderr.write('\n')
 
 
 # instantiate an argument parser
@@ -19,12 +26,11 @@ parser = argparse.ArgumentParser(description='Ericsson MSC CDR decoder')
 #   output file (use stdout if not given)
 #   progress bar display
 #   CDR numbering
+parser.add_argument('-i', dest='infile', help='input file', required=True)
 parser.add_argument('-o', dest='outfile', help='output file')
+parser.add_argument('-r', dest='version', help='MSC software version', required=True)
 parser.add_argument('--number', action='store_true', help='number CDRs in output')
 parser.add_argument('--bar', action='store_true', help='display progress bar')
-
-# add a positional argument for the input file
-parser.add_argument('infile', help='CDR file')
 
 # parse the arguments
 args = parser.parse_args()
@@ -38,8 +44,6 @@ except IOError:
     sys.stderr.write('Could not open file %s\n' % args.infile)
     sys.exit()
 
-# default to stdout for output
-outfile = sys.stdout
 
 # if an output file is specified try to open it
 if args.outfile:
@@ -49,9 +53,19 @@ if args.outfile:
         sys.stderr.write('Could not open file %s\n' % args.outfile)
         sys.exit()
 else:
+    # default to stdout for output
+    outfile = sys.stdout
     # if stdout is used, the progress bar cannot be displayed
     args.bar = False
 
+# load the decoder according to MSC software version
+if args.version.lower() == '14b':
+    from ericsson.cme20MSS14b import componentHash
+elif args.version.lower() == '16a':
+    from ericsson.cme20MSS16a import componentHash
+else:
+    sys.stderr.write('MSC version not supported\n')
+    sys.exit(-1)
 
 # get the current terminal column size to see if we can display a progress bar
 # number of useable columns (subtract 2 for brackets, 4 for number%, 2 for space)
@@ -75,7 +89,12 @@ while fields is not None:
     (asnClass, pc, classNum, length, contents, depthIn, depthOut, progress) = fields
 
     # get the current tag name
-    name = componentList[classNum]
+    if classNum >= len(componentList):
+        name = 'Tag%d' % classNum
+    else:
+        name = componentList[classNum]
+        if name is None:
+            name = 'Tag%d' % classNum
 
     if pc == asn1.CONSTRUCTOR:
     # if tag is a constructor, push its name onto the stack
@@ -95,13 +114,25 @@ while fields is not None:
         stack.append(name)
 
         # entering a new constructor, so the componentList must be updated
-        componentList = componentHash[name]
+        try:
+            componentList = componentHash[name]
+        except KeyError:
+            printStack(stack)
+            sys.exit(-1)
 
     elif [asnClass, pc, classNum, length] == asn1.EOC:
-    # if end-of-contents element, pop one item off stack
-        del stack[-1]
-        key = stack[-1]
-        componentList = componentHash[key]
+    # if end-of-contents element,
+        # check if we have reached the end of any constructor
+        if len(stack) > depthOut + 1:
+            stack = stack[:depthOut + 1]
+            # exited one or more constructors, so the componentList must be updated
+            key = stack[-1]
+            componentList = componentHash[key]
+
+        # next record is a new cdr so print a blank line to separate it
+        if depthOut <= 1 and depthIn > depthOut:
+            outfile.write('\n')
+
     else:
     # for a primitive, print the tag name and value
         indent = '  ' * depthIn
@@ -110,7 +141,10 @@ while fields is not None:
 
         # name is a key to the hash table which maps each primitive type
         # to the function that displays its value
-        display = parameterMap[name]
+        if name in parameterMap.keys():
+            display = parameterMap[name]
+        else:
+            display = parameterMap['default']
         if display is not None:
             outfile.write(trail)
             val = display(contents)

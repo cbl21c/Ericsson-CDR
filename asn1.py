@@ -146,8 +146,12 @@ class asn1Object:
         elif [asnClass, pc, classNum, length] == EOC:
         # check for end-of-contents
             # assert(self.stack[-1] <= 0)
-            del self.stack[-1]
-            self.depth = self.depth - 1
+            # check if we have reached the end of each constructor 
+            n = len(self.stack) - 1
+            while n >= 0 and self.stack[n] <= 0:
+                del self.stack[-1]
+                self.depth = self.depth - 1
+                n = n - 1
         else:
         # just a normal primitive
             # deduct the object length from the constructor sizes

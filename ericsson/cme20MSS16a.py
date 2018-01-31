@@ -332,10 +332,10 @@ componentHash['mSOriginating'] = [
     'sRVCCAlertingIndicator',
     'pChargingVectorRelated',
     'emergencyServiceCategory',
-    None,
-    None,
-    None,
-    None,
+    'sRVCCOriginatingPreAlertingIndicator',
+    'sRVCCCallHoldIndicator',
+    'sRVCCAdditionalSessionIndicator',
+    'sRVCCConferenceIndicator',
     'mobileStationRoamingNumberInfo'    # market correction Tag 168
 ]
 
@@ -1373,6 +1373,10 @@ componentHash['iNServiceDataEventModule'] = [
     'freeFormatData2',
     'freeFormatDataAppendIndicator',
     'freeFormatDataAppendIndicator2',
+    None,
+    None,
+    None,
+    'iNServiceData',
 ]
 
 
@@ -1455,8 +1459,17 @@ componentHash['triggerData'] = [
 ##############################
 # iNServiceData #
 ##############################
-componentHash[ iNServiceData'] = [
-    'serviceKey',
-    'gsmSCFAddress'
+componentHash['iNServiceData'] = [
+    # tags 0 to 5 unknown
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    'timeForEvent',
+    None,
+    'freeFormatData',
+    'sSFLegID'
 ]
 

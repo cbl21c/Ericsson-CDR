@@ -18,6 +18,7 @@ PRIORITY_LEVEL_A = 0x07
 PRIORITY_LEVEL_B = 0x06
 PRIORITY_LEVEL_SPARE = 0x00
 
+GSMCHAR = [None] * 128
 
 #
 # support functions
@@ -65,6 +66,89 @@ def luhn(s):
         checksum = 0
 
     return checksum
+
+
+def gsmchar_initialise():
+    # most of these will align with ascii chars
+    for n in range(32, 128):
+        GSMCHAR[n] = chr(n)
+
+    # these are the exceptions
+    GSMCHAR[0x24] = '\xa4'
+    GSMCHAR[0x40] = '\xa1'
+    GSMCHAR[0x5b] = '\xc4'
+    GSMCHAR[0x5c] = '\xd6'
+    GSMCHAR[0x5d] = '\xd1'
+    GSMCHAR[0x5e] = '\xdc'
+    GSMCHAR[0x5f] = '\xa7'
+    GSMCHAR[0x60] = '\xbf'
+    GSMCHAR[0x7b] = '\xe4'
+    GSMCHAR[0x7c] = '\xf6'
+    GSMCHAR[0x7d] = '\xf1'
+    GSMCHAR[0x7e] = '\xfc'
+    GSMCHAR[0x7f] = '\xe0'
+
+    # these are the remaining chars - mask LF and CR
+    GSMCHAR[0x00] = '@'
+    GSMCHAR[0x01] = '\xa3'
+    GSMCHAR[0x02] = '$'
+    GSMCHAR[0x03] = '\xa5'
+    GSMCHAR[0x04] = '\xe8'
+    GSMCHAR[0x05] = '\xe9'
+    GSMCHAR[0x06] = '\xf9'
+    GSMCHAR[0x07] = '\xec'
+    GSMCHAR[0x08] = '\xf2'
+    GSMCHAR[0x09] = '\xc7'
+    GSMCHAR[0x0a] = ''
+    GSMCHAR[0x0b] = '\xd8'
+    GSMCHAR[0x0c] = '\xf8'
+    GSMCHAR[0x0d] = ''
+    GSMCHAR[0x0e] = '\xc5'
+    GSMCHAR[0x0f] = '\xe5'
+    GSMCHAR[0x10] = ''
+    GSMCHAR[0x11] = '_'
+    GSMCHAR[0x12] = ''
+    GSMCHAR[0x13] = ''
+    GSMCHAR[0x14] = ''
+    GSMCHAR[0x15] = ''
+    GSMCHAR[0x16] = ''
+    GSMCHAR[0x17] = ''
+    GSMCHAR[0x18] = ''
+    GSMCHAR[0x19] = ''
+    GSMCHAR[0x1a] = ''
+    GSMCHAR[0x1b] = ''
+    GSMCHAR[0x1c] = '\xc6'
+    GSMCHAR[0x1d] = '\xe6'
+    GSMCHAR[0x1e] = '\xdf'
+    GSMCHAR[0x1f] = '\xc9'
+
+def gsmchar_decode(s):
+    if GSMCHAR[0] is None:
+        gsmchar_initialise()
+
+    nbits = 0
+    remain = 0
+    addr = ''
+    for n in range(len(s)):
+        # sys.stdout.write('%d %d %02x %02x\n' %(n, nbits, remain, sswap[n]))
+        out = ((s[n] << nbits) + remain) & 0x7f
+        # sys.stdout.write('%02x\n' % out)
+        addr += GSMCHAR[out]
+        nbits = (nbits + 1) % 7
+        remain = s[n] >> (8 - nbits)
+
+        # if we reach a multiple of 7, we should output two bytes
+        if nbits == 0:
+            out = s[n] >> 1
+            # sys.stdout.write('%02x\n' % out)
+            addr += GSMCHAR[out]
+
+    # if the last char is '@', it's probably there only because 7 bits remain
+    if out == 0:
+        addr = addr[:-1]
+
+    return addr
+
 
 #
 # Ericsson MSC CDR primitive types
@@ -123,6 +207,17 @@ def _OctetString(contents):
     return val
 
 
+##############################
+# _Raw                       #
+##############################
+def _Raw(contents):
+    # for all parameters which are to be displayed as octet string
+    val = ''
+    for x in contents:
+        val = val + '%02x ' % x
+    return val.strip()
+
+
 ################################################################################
 # Call Data Parameter Data Types (Section 5.2)                                 #
 ################################################################################
@@ -148,7 +243,16 @@ def _AddressString(contents):
 # _AddressStringExtended     #
 ##############################
 def _AddressStringExtended(contents):
-    return _AddressString(contents)
+    #return _AddressString(contents)
+    first = contents[0]
+    ton = first >> 4
+    npi = first & 0x0f
+    if ton == 14:
+        addr = gsmchar_decode(contents[1:])
+    else:
+        addr = _TBCDString(contents[1:])
+
+    return 'TON=%d, NPI=%d, Digits=%s' %(ton, npi, addr)
 
 ##############################
 # _AgeOfLocationEstimate             #
@@ -812,7 +916,7 @@ def _GlobalCallReference(contents):
     ptr = ptr + 1
     if length > 0:
         callrefId = contents[ptr:ptr + length]
-        val = val + 'Call Ref ID=' + _OctetString(callrefId)
+        val = val + ' Call Ref ID=' + _OctetString(callrefId)
 
     return val
 
@@ -2038,6 +2142,7 @@ parameterMap = {
     'mMEIdentity': _MMEIdentity,
     'mMEName': _MMEName,
     'mobileStationRoamingNumber': _AddressString,
+    'mobileStationRoamingNumberInfo': _AddressString,
     'mobileSubscriberNumberForHLRInterrogation': _AddressString,
     'mobileUserClass1': _MobileUserClass1,
     'mobileUserClass2': _MobileUserClass2,
@@ -2113,8 +2218,12 @@ parameterMap = {
     'sMSReferenceNumber': _GSMCallReferenceNumber,
     'sMSResult': _SMSResult,
     'speechCoderPreferenceList': _SpeechCoderPreferenceList,
+    'sRVCCAdditionalSessionIndicator': None,
     'sRVCCAlertingIndicator': _SRVCCAlertingIndicator,
+    'sRVCCCallHoldIndicator': None,
+    'sRVCCConferenceIndicator': None,
     'sRVCCIndicator': _SRVCCIndicator,
+    'sRVCCOriginatingPreAlertingIndicator': None,
     'sSCode': _SSCode,
     'sSFLegID': _LegID,
     'sSFChargingCase': _SSFChargingCase,
@@ -2179,7 +2288,9 @@ parameterMap = {
     'co-located': None,
     'pointCodeAndSubSystemNumber': _PointCodeAndSubSystemNumber,
     'globalTitle': _GlobalTitle,
-    'globalTitleAndSubSystemNumber': _GlobalTitleAndSubSystemNumber
+    'globalTitleAndSubSystemNumber': _GlobalTitleAndSubSystemNumber,
+    # default display method when for unknown tags
+    'default': _Raw,
 }
 
 

@@ -1,0 +1,142 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "msterminating.h"
+#include "components.h"
+
+extern asn1Object primitive[];
+
+asn1Object *msterminating[MSTERMINATING_MAX_FIELDS];
+
+
+void initialiseMSTerminating(void)
+{
+    msterminating[  0] = primitive + TAC;
+    msterminating[  1] = primitive + CALLIDENTIFICATIONNUMBER;
+    msterminating[  2] = primitive + RECORDSEQUENCENUMBER;
+    msterminating[  3] = primitive + TYPEOFCALLINGSUBSCRIBER;
+    msterminating[  4] = primitive + CALLINGPARTYNUMBER;
+    msterminating[  5] = primitive + CALLEDPARTYNUMBER;
+    msterminating[  6] = primitive + CALLEDSUBSCRIBERIMSI;
+    msterminating[  7] = primitive + CALLEDSUBSCRIBERIMEI;
+    msterminating[  8] = primitive + MOBILESTATIONROAMINGNUMBER;
+    msterminating[  9] = primitive + DISCONNECTINGPARTY;
+    msterminating[ 10] = primitive + DATEFORSTARTOFCHARGE;
+    msterminating[ 11] = primitive + TIMEFORSTARTOFCHARGE;
+    msterminating[ 12] = primitive + TIMEFORSTOPOFCHARGE;
+    msterminating[ 13] = primitive + CHARGEABLEDURATION;
+    msterminating[ 14] = primitive + INTERRUPTIONTIME;
+    msterminating[ 15] = primitive + TIMEFROMREGISTERSEIZURETOSTARTOFCHARGING;
+    msterminating[ 16] = primitive + CHARGEDPARTY;
+    msterminating[ 17] = primitive + ORIGINFORCHARGING;
+    msterminating[ 18] = primitive + TARIFFCLASS;
+    msterminating[ 19] = primitive + TARIFFSWITCHIND;
+    msterminating[ 20] = primitive + EXCHANGEIDENTITY;
+    msterminating[ 21] = primitive + MSCIDENTIFICATION;
+    msterminating[ 22] = primitive + OUTGOINGROUTE;
+    msterminating[ 23] = primitive + INCOMINGROUTE;
+    msterminating[ 24] = primitive + CHANNELALLOCATIONPRIORITYLEVEL;
+    msterminating[ 25] = primitive + TERMINATINGLOCATIONNUMBER;
+    msterminating[ 26] = primitive + TIMEFORTCSEIZURECALLED;
+    msterminating[ 27] = primitive + FIRSTCALLEDLOCATIONINFORMATION;
+    msterminating[ 28] = primitive + LASTCALLEDLOCATIONINFORMATION;
+    msterminating[ 29] = primitive + TELESERVICECODE;
+    msterminating[ 30] = primitive + BEARERSERVICECODE;
+    msterminating[ 31] = primitive + TRANSPARENCYINDICATOR;
+    msterminating[ 32] = primitive + FIRSTRADIOCHANNELUSED;
+    msterminating[ 33] = primitive + CALLPOSITION;
+    msterminating[ 34] = primitive + EOSINFO;
+    msterminating[ 35] = primitive + INTERNALCAUSEANDLOC;
+    msterminating[ 36] = primitive + ORIGINALCALLEDNUMBER;
+    msterminating[ 37] = primitive + REDIRECTINGNUMBER;
+    msterminating[ 38] = primitive + REDIRECTIONCOUNTER;
+    msterminating[ 39] = primitive + SELECTEDCODEC;
+    msterminating[ 40] = primitive + USERTOUSERINFORMATION;
+    msterminating[ 41] = primitive + RESTARTDURINGCALL;
+    msterminating[ 42] = primitive + RESTARTDURINGOUTPUTINDICATOR;
+    msterminating[ 43] = primitive + DTMFUSED;
+    msterminating[ 44] = primitive + ICIORDERED;
+    msterminating[ 45] = primitive + OUTPUTFORSUBSCRIBER;
+    msterminating[ 46] = primitive + LASTPARTIALOUTPUT;
+    msterminating[ 47] = primitive + PARTIALOUTPUTRECNUM;
+    msterminating[ 48] = primitive + RELATEDCALLNUMBER;
+    msterminating[ 49] = primitive + ACCEPTANCEOFCALLWAITING;
+    msterminating[ 50] = primitive + MISCELLANEOUSINFORMATION;
+    msterminating[ 51] = primitive + CUGINTERLOCKCODE;
+    msterminating[ 52] = primitive + CUGINDEX;
+    msterminating[ 53] = primitive + CUGINCOMINGACCESSUSED;
+    msterminating[ 54] = primitive + REGIONALSERVICEUSED;
+    msterminating[ 55] = primitive + REGIONDEPENDENTCHARGINGORIGIN;
+    msterminating[ 56] = primitive + SSCODE;
+    msterminating[ 57] = primitive + PRESENTATIONANDSCREENINGINDICATOR;
+    msterminating[ 58] = primitive + RADIOCHANNELPROPERTY;
+    msterminating[ 59] = primitive + FAULTCODE;
+    msterminating[ 60] = primitive + INTERMEDIATERATE;
+    msterminating[ 61] = primitive + FIRSTASSIGNEDSPEECHCODERVERSION;
+    msterminating[ 62] = primitive + SPEECHCODERPREFERENCELIST;
+    msterminating[ 63] = primitive + SUBSCRIPTIONTYPE;
+    msterminating[ 64] = primitive + INCOMPLETECALLDATAINDICATOR;
+    msterminating[ 65] = primitive + MSCADDRESS;
+    msterminating[ 66] = primitive + SWITCHIDENTITY;
+    msterminating[ 67] = primitive + NETWORKCALLREFERENCE;
+    msterminating[ 68] = primitive + FREQUENCYBANDSUPPORTED;
+    msterminating[ 69] = primitive + DISCONNECTIONDUETOSYSTEMRECOVERY;
+    msterminating[ 70] = primitive + FORLOPPDURINGOUTPUTINDICATOR;
+    msterminating[ 71] = primitive + FORLOPPRELEASEDURINGCALL;
+    msterminating[ 72] = primitive + ACCOUNTCODE;
+    msterminating[ 73] = primitive + GSMCALLREFERENCENUMBER;
+    msterminating[ 74] = primitive + EMLPPPRIORITYLEVEL;
+    msterminating[ 75] = primitive + POSITIONACCURACY;
+    msterminating[ 76] = primitive + USERTERMINALPOSITION;
+    msterminating[ 77] = primitive + ACCEPTABLECHANNELCODINGS;
+    msterminating[ 78] = primitive + OUTGOINGASSIGNEDROUTE;
+    msterminating[ 79] = primitive + CHANNELCODINGUSED;
+    msterminating[ 80] = primitive + MULTIMEDIACALL;
+    msterminating[ 81] = primitive + GSMSCFADDRESS;
+    msterminating[ 82] = primitive + FNURREQUESTED;
+    msterminating[ 83] = primitive + AIURREQUESTED;
+    msterminating[ 84] = primitive + NUMBEROFCHANNELSREQUESTED;
+    msterminating[ 85] = primitive + BSSMAPCAUSECODE;
+    msterminating[ 86] = primitive + GUARANTEEDBITRATE;
+    msterminating[ 87] = primitive + TRAFFICCLASS;
+    msterminating[ 88] = primitive + RANAPCAUSECODE;
+    msterminating[ 89] = primitive + RNCIDOFFIRSTRNC;
+    msterminating[ 90] = primitive + MAXBITRATEDOWNLINK;
+    msterminating[ 91] = primitive + MAXBITRATEUPLINK;
+    msterminating[ 92] = primitive + TRANSFERDELAY;
+    msterminating[ 93] = primitive + DELIVERYOFERRONEOUSSDU1;
+    msterminating[ 94] = primitive + DELIVERYOFERRONEOUSSDU2;
+    msterminating[ 95] = primitive + DELIVERYOFERRONEOUSSDU3;
+    msterminating[ 96] = primitive + RESIDUALBITERRORRATIO1;
+    msterminating[ 97] = primitive + RESIDUALBITERRORRATIO2;
+    msterminating[ 98] = primitive + RESIDUALBITERRORRATIO3;
+    msterminating[ 99] = primitive + SDUERRORRATIO1;
+    msterminating[100] = primitive + SDUERRORRATIO2;
+    msterminating[101] = primitive + SDUERRORRATIO3;
+    msterminating[102] = primitive + OUTPUTTYPE;
+    msterminating[103] = primitive + ACMCHARGINGINDICATOR;
+    msterminating[104] = primitive + ANMCHARGINGINDICATOR;
+    msterminating[105] = primitive + CHARGEINFORMATION;
+    msterminating[106] = primitive + DISCONNECTIONDATE;
+    msterminating[107] = primitive + DISCONNECTIONTIME;
+    msterminating[108] = primitive + INTERNATIONALCALLINDICATOR;
+    msterminating[109] = primitive + MOBILEUSERCLASS1;
+    msterminating[110] = primitive + MOBILEUSERCLASS2;
+    msterminating[111] = primitive + ORIGINATINGCARRIER;
+    msterminating[112] = primitive + ORIGINATINGCHARGEAREA;
+    msterminating[113] = primitive + TERMINATINGCARRIER;
+    msterminating[114] = primitive + TERMINATINGCHARGEAREA;
+    msterminating[115] = primitive + USERCLASS;
+    msterminating[116] = primitive + CALLEDSUBSCRIBERIMEISV;
+    msterminating[117] = primitive + GLOBALCALLREFERENCE;
+    msterminating[118] = primitive + IUCODEC;
+    msterminating[119] = primitive + BLADEID;
+    msterminating[120] = primitive + BUDDYBLADEINDICATOR;
+    msterminating[121] = primitive + REROUTINGINDICATOR;
+    msterminating[122] = primitive + INVOCATIONOFCALLHOLD;
+    msterminating[123] = primitive + RETRIEVALOFHELDCALL;
+    msterminating[124] = primitive + TRAFFICISOLATIONINDICATOR;
+    msterminating[125] = primitive + MMENAME;
+    msterminating[126] = primitive + MTRFINDICATOR;
+}
+

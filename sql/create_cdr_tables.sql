@@ -1,0 +1,87 @@
+create table moc (
+    cdrfile                   varchar(32),
+    globalCallReference       char(30),
+    callPosition              smallint unsigned,
+    chargeableDuration        integer unsigned,
+    timeForStartOfCharge      integer unsigned,
+    timeForStopOfCharge       integer unsigned,
+    callingSubscriberIMEI     char(15),
+    callingSubscriberIMSI     char(15),
+    firstCallingLocation      varchar(32),
+    lastCallingLocation       varchar(32),
+    callingPartyNumberTon     smallint unsigned,
+    callingPartyNumberDigits  varchar(32),
+    calledPartyNumberTon      smallint unsigned,
+    calledPartyNumberDigits   varchar(32),
+    serviceKey                integer unsigned,
+    gsmSCFAddress             varchar(32),
+    incomingRoute             varchar(16),
+    outgoingRoute             varchar(16),
+    subscriptionType          smallint unsigned,
+    translatedNumberTon       smallint unsigned,
+    translatedNumberDigits    varchar(32),
+    mobileStationRoamingNumberInfoTon       smallint unsigned,
+    mobileStationRoamingNumberInfoDigits    varchar(32),
+    faultCode                 smallint unsigned
+);
+
+create table mtc (
+    cdrfile                   varchar(32),
+    globalCallReference       char(30),
+    callPosition              smallint unsigned,
+    chargeableDuration        integer unsigned,
+    timeForStartOfCharge      integer unsigned,
+    timeForStopOfCharge       integer unsigned,
+    calledSubscriberIMEI      char(15),
+    calledSubscriberIMSI      char(15),
+    firstCalledLocation       varchar(32),
+    lastCalledLocation        varchar(32),
+    callingPartyNumberTon     smallint unsigned,
+    callingPartyNumberDigits  varchar(32),
+    calledPartyNumberTon      smallint unsigned,
+    calledPartyNumberDigits   varchar(32),
+    serviceKey                integer unsigned,
+    gsmSCFAddress             varchar(32),
+    incomingRoute             varchar(16),
+    outgoingRoute             varchar(16),
+    subscriptionType          smallint unsigned,
+    redirectionCounter        smallint unsigned,
+    redirectingNumberTon      smallint unsigned,
+    redirectingNumberDigits   varchar(32),
+    faultCode                 smallint unsigned
+);
+
+create table transit (
+    cdrfile                   varchar(32),
+    globalCallReference       char(30),
+    callPosition              smallint unsigned,
+    chargeableDuration        integer unsigned,
+    timeForStartOfCharge      integer unsigned,
+    timeForStopOfCharge       integer unsigned,
+    callingPartyNumberTon     smallint unsigned,
+    callingPartyNumberDigits  varchar(32),
+    redirectionCounter        smallint unsigned,
+    redirectingNumberTon      smallint unsigned,
+    redirectingNumberDigits   varchar(32),
+    calledPartyNumberTon      smallint unsigned,
+    calledPartyNumberDigits   varchar(32),
+    serviceKey                integer unsigned,
+    gsmSCFAddress             varchar(32),
+    incomingRoute             varchar(16),
+    outgoingRoute             varchar(16),
+    subscriptionType          smallint unsigned,
+    translatedNumberTon       smallint unsigned,
+    translatedNumberDigits    varchar(32),
+    mobileStationRoamingNumberInfoTon       smallint unsigned,
+    mobileStationRoamingNumberInfoDigits    varchar(32),
+    faultCode                 smallint unsigned
+);
+
+
+create table iic (
+    cdrfile                   varchar(32),
+    globalCallReference       char(30),
+    triggerDetectionPoint     smallint unsigned,
+    serviceKey                integer unsigned,
+    gsmSCFAddress             varchar(32)
+);

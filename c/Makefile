@@ -89,8 +89,10 @@ CME20_H = components.h \
 	handovereventmodule.h
 
 OBJS    = fastdecode.o stack.o $(CME20_OBJS)
-SOURCE  = fastdecode.c stack.c stack.h $(CME20_C) $(CME20_H)
+SOURCE  = fastdecode.c stack.c stack.h $(CME20_C) $(CME20_H) ingest.c sqlrecord.c sqlrecord.h
           
+INGEST_OBJS = ingest.o stack.o sqlrecord.o $(CME20_OBJS)
+IIC_OBJS = vmrin.o stack.o sqlrecord.o $(CME20_OBJS)
 
 CC      = /usr/bin/gcc
 CFLAGS  = -o fastdecode
@@ -103,6 +105,12 @@ all:	$(TARGET)
 
 $(TARGET):	$(OBJS)
 		$(CC) $(CFLAGS) $(OBJS) $(LIBDIR) $(LIBS)
+
+ingest:	ingest.o $(INGEST_OBJS)
+	$(CC) -o ingest $(INGEST_OBJS) $(LIBDIR) $(LIBS)
+
+vmrin:	vmrin.o $(IIC_OBJS)
+	$(CC) -o vmrin $(IIC_OBJS) $(LIBDIR) $(LIBS)
 
 .c.o:
 	$(CC) -c $<
